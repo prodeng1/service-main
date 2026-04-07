@@ -17,6 +17,10 @@ services:
       context: .
       dockerfile: infrastructure/jenkins/Dockerfile
     image: prod-eng-jenkins
+    environment:
+      GITHUB_OWNER: prodeng1
+      GITHUB_ORG_FOLDER: prodeng1-org
+      GITHUB_CREDENTIALS_ID: github_credentials
     ports:
       - 8082:8080
       - 50000:50000

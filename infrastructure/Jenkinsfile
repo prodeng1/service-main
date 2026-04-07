@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    environment {
-        IMAGE_NAME = credentials('docker_image_name')
-    }
 
     stages {
         stage('Build & Test') {
@@ -36,17 +33,22 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .'
+                withCredentials([string(credentialsId: 'docker_image_name', variable: 'IMAGE_NAME')]) {
+                    sh 'docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .'
+                }
             }
         }
 
         stage('Publish Docker Image') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker_hub_credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
+                withCredentials([
+                    string(credentialsId: 'docker_image_name', variable: 'IMAGE_NAME'),
+                    usernamePassword(
+                        credentialsId: 'docker_hub_credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login docker.io -u "$DOCKER_USERNAME" --password-stdin
                         docker push ${IMAGE_NAME}:${IMAGE_VERSION}
@@ -54,11 +56,22 @@ pipeline {
                 }
             }
         }
-    }
 
-    post {
-        always {
-            sh 'docker logout docker.io || true'
+        stage('Create Git Tag') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'github_credentials',
+                    usernameVariable: 'GITHUB_USERNAME',
+                    passwordVariable: 'GITHUB_TOKEN'
+                )]) {
+                    sh '''
+                        git config user.name "Jenkins CI"
+                        git config user.email "jenkins@local"
+                        git tag ${IMAGE_VERSION}
+                        git push https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/prodeng1/service-main.git refs/tags/${IMAGE_VERSION}
+                    '''
+                }
+            }
         }
     }
 }

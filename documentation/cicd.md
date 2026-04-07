@@ -57,6 +57,7 @@ The repository Jenkinsfile already implements the Lab 6 flow in pipeline-as-code
 Expected Jenkins credentials:
 - `docker_hub_credentials`: Username with password credential for Docker Hub
 - `docker_image_name`: Secret text containing the full image name, for example `your-user/prod-eng-img`
+- `github_credentials`: Username with password credential where username is the GitHub username and password is a GitHub Personal Access Token used to push Git tags
 
 If the repository has no tags yet, the pipeline starts with image version `0.1.0`.
 

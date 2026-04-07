@@ -6,15 +6,15 @@
 
 
 # ==========================================
-# User Controller Endpoints
+# Customer / User Controller Endpoints
 # ==========================================
 
-### Get all users
-GET http://localhost:8080/api/users
+### Get all customers
+GET http://localhost:8080/api/customers
 
-### Create a new user (run this to populate variables for other requests)
-# @name createUser
-POST http://localhost:8080/api/users
+### Create a new customer (run this to populate variables for other requests)
+# @name createCustomer
+POST http://localhost:8080/api/customers
 Content-Type: application/json
 
 {
@@ -23,49 +23,174 @@ Content-Type: application/json
     "phone": "+40712345678"
 }
 
-### Get user by ID (uses ID from createUser response)
-GET http://localhost:8080/api/users/{{createUser.response.body.id}}
+### Get customer by ID
+GET http://localhost:8080/api/customers/{{createCustomer.response.body.id}}
 
-### Get user by phone (uses phone from createUser response)
-GET http://localhost:8080/api/users/by-phone?phone={{createUser.response.body.phone}}
+### Search customers by name
+GET http://localhost:8080/api/customers/search?name=Jean
 
-### Update user contact (PUT)
-PUT http://localhost:8080/api/users/{{createUser.response.body.id}}
+### Get customer by email
+GET http://localhost:8080/api/customers/by-email?email={{createCustomer.response.body.email}}
+
+### Get customer by phone
+GET http://localhost:8080/api/customers/by-phone?phone={{createCustomer.response.body.phone}}
+
+### Full customer update (PUT)
+PUT http://localhost:8080/api/customers/{{createCustomer.response.body.id}}
 Content-Type: application/json
 
 {
+    "name": "Jean Mayor",
     "email": "newemail@france.fr",
     "phone": "+40787654321"
 }
 
-### Change user name (PATCH)
-PATCH http://localhost:8080/api/users/{{createUser.response.body.id}}/name
+### Update only contact (PATCH)
+PATCH http://localhost:8080/api/customers/{{createCustomer.response.body.id}}/contact
+Content-Type: application/json
+
+{
+    "email": "contactonly@france.fr",
+    "phone": "+40711111111"
+}
+
+### Change customer name (PATCH)
+PATCH http://localhost:8080/api/customers/{{createCustomer.response.body.id}}/name
 Content-Type: application/json
 
 {
     "name": "Monsieur le Maire"
 }
 
-### Delete user
-DELETE http://localhost:8080/api/users/{{createUser.response.body.id}}
+### Delete customer
+DELETE http://localhost:8080/api/customers/{{createCustomer.response.body.id}}
+
+
+# ==========================================
+# Appointment Controller Endpoints
+# ==========================================
+
+### Create a new appointment
+# @name createAppointment
+POST http://localhost:8080/api/appointments
+Content-Type: application/json
+
+{
+    "customerName": "Ana Popescu",
+    "customerEmail": "ana.popescu@example.com",
+    "customerPhone": "+40712345678",
+    "vehicleBrand": "Dacia",
+    "vehicleModel": "Duster",
+    "vehicleRegistrationNumber": "B-123-XYZ",
+    "serviceType": "Test drive",
+    "appointmentAt": "2026-04-15T10:00:00",
+    "notes": "Client interesat de versiunea automata"
+}
+
+### Get all appointments
+GET http://localhost:8080/api/appointments
+
+### Get appointment by ID
+GET http://localhost:8080/api/appointments/{{createAppointment.response.body.id}}
+
+### Get appointments by customer email
+GET http://localhost:8080/api/appointments/by-email?email=ana.popescu@example.com
+
+### Get appointments by date
+GET http://localhost:8080/api/appointments/by-date?date=2026-04-15
+
+### Confirm appointment
+PATCH http://localhost:8080/api/appointments/{{createAppointment.response.body.id}}/status
+Content-Type: application/json
+
+{
+    "status": "CONFIRMED"
+}
+
+### Complete appointment
+PATCH http://localhost:8080/api/appointments/{{createAppointment.response.body.id}}/status
+Content-Type: application/json
+
+{
+    "status": "COMPLETED"
+}
+
+### Update appointment notes
+PATCH http://localhost:8080/api/appointments/{{createAppointment.response.body.id}}/notes
+Content-Type: application/json
+
+{
+    "notes": "Clientul a cerut sa fie sunat cu o ora inainte"
+}
+
+### Try duplicate appointment for same customer and time (should fail with 400)
+POST http://localhost:8080/api/appointments
+Content-Type: application/json
+
+{
+    "customerName": "Ana Popescu",
+    "customerEmail": "ana.popescu@example.com",
+    "customerPhone": "+40712345678",
+    "vehicleBrand": "Dacia",
+    "vehicleModel": "Duster",
+    "vehicleRegistrationNumber": "B-123-XYZ",
+    "serviceType": "Revizie",
+    "appointmentAt": "2026-04-15T10:00:00",
+    "notes": "Aceasta cerere trebuie sa pice"
+}
+
+### Try appointment outside working hours (should fail with 400)
+POST http://localhost:8080/api/appointments
+Content-Type: application/json
+
+{
+    "customerName": "Mihai Ionescu",
+    "customerEmail": "mihai.ionescu@example.com",
+    "customerPhone": "+40722333444",
+    "vehicleBrand": "Renault",
+    "vehicleModel": "Clio",
+    "vehicleRegistrationNumber": "B-456-ABC",
+    "serviceType": "Constatare",
+    "appointmentAt": "2026-04-15T19:30:00",
+    "notes": "Aceasta cerere trebuie sa pice"
+}
+
+### Try complete without confirmation first (should fail with 400)
+POST http://localhost:8080/api/appointments
+Content-Type: application/json
+
+{
+    "customerName": "Elena Marin",
+    "customerEmail": "elena.marin@example.com",
+    "customerPhone": "+40798765432",
+    "vehicleBrand": "Skoda",
+    "vehicleModel": "Octavia",
+    "vehicleRegistrationNumber": "IF-99-AUTO",
+    "serviceType": "Consultanta vanzare",
+    "appointmentAt": "2026-04-16T11:00:00",
+    "notes": "Programare noua"
+}
+
+### Delete appointment
+DELETE http://localhost:8080/api/appointments/{{createAppointment.response.body.id}}
 
 
 # ==========================================
 # Todo Controller Endpoints
 # ==========================================
 
-### Create a new todo (run this after createUser to populate variables)
+### Create a new todo (run this after createCustomer to populate variables)
 # @name createTodo
 POST http://localhost:8080/api/todos
 Content-Type: application/json
 
 {
     "description": "Rescue Cosette from the Thénardiers",
-    "assigneeEmail": "{{createUser.response.body.email}}"
+    "assigneeEmail": "{{createCustomer.response.body.email}}"
 }
 
 ### Get todos by assignee email
-GET http://localhost:8080/api/todos?assigneeEmail={{createUser.response.body.email}}
+GET http://localhost:8080/api/todos?assigneeEmail={{createCustomer.response.body.email}}
 
 ### Get todo by ID (uses ID from createTodo response)
 GET http://localhost:8080/api/todos/{{createTodo.response.body.id}}
@@ -80,7 +205,7 @@ true
 # Note: You'll need another user to exist for this to work
 
 ### Try to create user with duplicate phone (should fail with 400)
-POST http://localhost:8080/api/users
+POST http://localhost:8080/api/customers
 Content-Type: application/json
 
 {
@@ -89,8 +214,8 @@ Content-Type: application/json
     "phone": "+40712345678"
 }
 
-### Try to create user with invalid data (should fail with 400)
-POST http://localhost:8080/api/users
+### Try to create customer with invalid data (should fail with 400)
+POST http://localhost:8080/api/customers
 Content-Type: application/json
 
 {
@@ -100,7 +225,7 @@ Content-Type: application/json
 }
 
 ### Try to update contact with same data (should fail with 400)
-PUT http://localhost:8080/api/users/69b864479eacf372f5926b47
+PATCH http://localhost:8080/api/customers/69b864479eacf372f5926b47/contact
 Content-Type: application/json
 
 {
@@ -109,7 +234,7 @@ Content-Type: application/json
 }
 
 ### Try to change name to same name (should fail with 400)
-PATCH http://localhost:8080/api/users/69b864479eacf372f5926b47/name
+PATCH http://localhost:8080/api/customers/69b864479eacf372f5926b47/name
 Content-Type: application/json
 
 {
@@ -138,5 +263,5 @@ Content-Type: application/json
 ### Delete todo
 DELETE http://localhost:8080/api/todos/{{createTodo.response.body.id}}
 
-### Delete user
-DELETE http://localhost:8080/api/users/{{createUser.response.body.id}}
+### Delete customer
+DELETE http://localhost:8080/api/customers/{{createCustomer.response.body.id}}

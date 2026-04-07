@@ -142,3 +142,17 @@ services:
       driver: loki
       options:
         loki-url: "http://loki:3100/loki/api/v1/push"
+  wrk-injector-appointments-get:
+    image: mtchavez/docker-wrk
+    profiles:
+      - "perf"
+    volumes:
+      - ./:/data:ro
+    command: wrk -t4 -c50 -d60s --latency -s /data/performance/appointments-get.lua http://prod-eng:8080/api/appointments
+  wrk-injector-appointments-post:
+    image: mtchavez/docker-wrk
+    profiles:
+      - "perf"
+    volumes:
+      - ./:/data:ro
+    command: wrk -t2 -c10 -d45s --latency -s /data/performance/appointments-post.lua http://prod-eng:8080/api/appointments

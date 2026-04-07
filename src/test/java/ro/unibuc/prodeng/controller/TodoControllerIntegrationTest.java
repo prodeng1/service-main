@@ -38,12 +38,17 @@ class TodoControllerIntegrationTest extends IntegrationTestBase {
     }
 
     private void createUser(String name, String email) throws Exception {
-        CreateUserRequest request = new CreateUserRequest(name, email);
+        CreateUserRequest request = new CreateUserRequest(name, email, generatePhone(email));
 
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
+    }
+
+    private String generatePhone(String seed) {
+        int value = Math.abs(seed.hashCode());
+        return "+40" + String.format("%09d", value % 1_000_000_000);
     }
 
     private String createTodo(String description, String assigneeEmail) throws Exception {

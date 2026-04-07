@@ -47,3 +47,5 @@ infrastructure/loki/durable/
 
 ### Claude Code ###
 .claude/
+.gradle-home/
+.gradle-home-run/

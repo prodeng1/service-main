@@ -58,7 +58,7 @@ public class TodoSteps {
 
     @Given("a user named {word} with email {word}")
     public void createUser(String name, String email) throws Exception {
-        CreateUserRequest request = new CreateUserRequest(name, email);
+        CreateUserRequest request = new CreateUserRequest(name, email, generatePhone(email));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<CreateUserRequest> entity = new HttpEntity<>(request, headers);
@@ -66,6 +66,11 @@ public class TodoSteps {
         ResponseEntity<String> response = restTemplate.postForEntity(BASE_URL + "/api/users", entity, String.class);
         UserEntity user = objectMapper.readValue(response.getBody(), UserEntity.class);
         createdUserIds.add(user.id());
+    }
+
+    private String generatePhone(String seed) {
+        int value = Math.abs(seed.hashCode());
+        return "+40" + String.format("%09d", value % 1_000_000_000);
     }
 
     @When("the client creates a todo {string} for {word}")

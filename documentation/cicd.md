@@ -48,6 +48,18 @@ docker push <username>/prod-eng-img:$IMAGE_VERSION
 - Scan organization and check the new automated job created and its status
 - Add a new stage in Jenkinsfile to publish the artifact to doker hub
 
+The repository Jenkinsfile already implements the Lab 6 flow in pipeline-as-code form:
+- `Build & Test` runs `./gradlew clean build`
+- `Compute Image Version` reads the latest Git tag in `MAJOR.MINOR.PATCH` format and increments the minor version
+- `Build Docker Image` builds the app image using the Docker Hub image name stored in Jenkins credentials
+- `Publish Docker Image` logs in with Jenkins-managed Docker Hub credentials and pushes the versioned image
+
+Expected Jenkins credentials:
+- `docker_hub_credentials`: Username with password credential for Docker Hub
+- `docker_image_name`: Secret text containing the full image name, for example `your-user/prod-eng-img`
+
+If the repository has no tags yet, the pipeline starts with image version `0.1.0`.
+
 ### Helpful links
 - Add webhooks on github repo for triggering [automated builds](https://devopscube.com/jenkins-build-trigger-github-pull-request/) at PR time
 - Using a [Jenkinsfile](https://www.jenkins.io/doc/book/pipeline/jenkinsfile/) will also help fetching secrets from Jenkins credentials.

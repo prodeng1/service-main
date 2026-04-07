@@ -1,14 +1,64 @@
 pipeline {
     agent any
     environment {
-        DOCKER_PASSWORD = credentials("docker_password")
+        IMAGE_NAME = credentials('docker_image_name')
     }
 
     stages {
         stage('Build & Test') {
             steps {
-                sh './gradlew clean build'
+                checkout scm
+                sh 'chmod +x gradlew && ./gradlew clean build'
             }
+        }
+
+        stage('Compute Image Version') {
+            steps {
+                script {
+                    def latestTag = sh(
+                        script: "git tag --list --sort=-v:refname | head -n 1",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!latestTag) {
+                        env.IMAGE_VERSION = '0.1.0'
+                    } else {
+                        def parts = latestTag.tokenize('.')
+                        if (parts.size() != 3 || !parts.every { it.isInteger() }) {
+                            error("Latest git tag '${latestTag}' does not follow the expected MAJOR.MINOR.PATCH format.")
+                        }
+
+                        env.IMAGE_VERSION = "${parts[0]}.${parts[1].toInteger() + 1}.${parts[2]}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .'
+            }
+        }
+
+        stage('Publish Docker Image') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker_hub_credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login docker.io -u "$DOCKER_USERNAME" --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_VERSION}
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout docker.io || true'
         }
     }
 }
